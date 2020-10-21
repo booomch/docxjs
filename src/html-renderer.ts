@@ -46,7 +46,7 @@ export class HtmlRenderer {
             styleContainer.appendChild(this.renderNumbering(document.numbering, styleContainer));
         }
 
-        if(!options.ignoreFonts)
+        if (!options.ignoreFonts)
             this.renderFontTable(document.fontTable, styleContainer);
 
         var sectionElements = this.renderSections(document.document);
@@ -62,7 +62,7 @@ export class HtmlRenderer {
     }
 
     renderFontTable(fonts: any[], styleContainer: HTMLElement) {
-        for(let f of fonts.filter(x => x.refId)) {
+        for (let f of fonts.filter(x => x.refId)) {
             this.document.loadFont(f.refId, f.fontKey).then(fontData => {
                 var cssTest = `@font-face {
                     font-family: "${f.name}";
@@ -156,7 +156,7 @@ export class HtmlRenderer {
 
     createSection(className: string, props: SectionProperties) {
         var elem = this.htmlDocument.createElement("section");
-        
+
         elem.className = className;
 
         if (props) {
@@ -192,7 +192,7 @@ export class HtmlRenderer {
 
         this.processElement(document);
 
-        for(let section of this.splitBySection(document.children)) {
+        for (let section of this.splitBySection(document.children)) {
             var sectionElement = this.createSection(this.className, section.sectProps || document.props);
             this.renderElements(section.elements, sectionElement);
             result.push(sectionElement);
@@ -210,7 +210,7 @@ export class HtmlRenderer {
             var newElem = Object.create(Object.getPrototypeOf(elem));
             Object.assign(newElem, elem);
 
-            let [f,s] = revert ? [elem, newElem] : [newElem, elem];
+            let [f, s] = revert ? [elem, newElem] : [newElem, elem];
 
             f.children = children.slice(pBreakIndex);
             s.children = children.slice(0, rBreakIndex)
@@ -218,36 +218,35 @@ export class HtmlRenderer {
             return newElem;
         }
 
-        for(let elem of elements) {
+        for (let elem of elements) {
             current.elements.push(elem);
 
-            if(elem instanceof Paragraph)
-            {
+            if (elem instanceof Paragraph) {
                 var sectProps = elem.props.sectionProps;
                 var pBreakIndex = -1;
                 var rBreakIndex = -1;
-                
-                if(this.options.breakPages && elem.children) {
+
+                if (this.options.breakPages && elem.children) {
                     pBreakIndex = elem.children.findIndex((r: Run) => {
                         rBreakIndex = r.children?.findIndex(t => (t instanceof Break) && t.break == "page") ?? -1;
                         return rBreakIndex != -1;
                     });
                 }
-    
-                if(sectProps || pBreakIndex != -1) {
+
+                if (sectProps || pBreakIndex != -1) {
                     current.sectProps = sectProps;
                     current = { sectProps: null, elements: [] };
                     result.push(current);
                 }
 
-                if(pBreakIndex != -1) {
+                if (pBreakIndex != -1) {
                     let breakRun = elem.children[pBreakIndex] as Run;
                     let splitRun = rBreakIndex < breakRun.children.length - 1;
 
-                    if(pBreakIndex < elem.children.length - 1 || splitRun) {
+                    if (pBreakIndex < elem.children.length - 1 || splitRun) {
                         current.elements.push(splitElement(elem, false));
 
-                        if(splitRun) {
+                        if (splitRun) {
                             elem.children.push(splitElement(breakRun, true));
                         }
                     }
@@ -304,7 +303,8 @@ export class HtmlRenderer {
 
                 styleText += this.styleToString(`${selector}:before`, {
                     "content": this.levelTextToContent(num.levelText, num.id),
-                    "counter-increment": counter
+                    "counter-increment": counter,
+                    "padding": "10px"
                 });
 
                 styleText += this.styleToString(selector, {
@@ -354,14 +354,14 @@ export class HtmlRenderer {
         var stylesMap = this.processStyles(styles);
 
         for (let style of styles) {
-            var subStyles =  style.styles;
+            var subStyles = style.styles;
 
-            if(style.linked) {
+            if (style.linked) {
                 var linkedStyle = style.linked && stylesMap[style.linked];
 
                 if (linkedStyle)
                     subStyles = subStyles.concat(linkedStyle.styles);
-                else if(this.options.debug)
+                else if (this.options.debug)
                     console.warn(`Can't find linked style ${style.linked}`);
             }
 
@@ -386,13 +386,13 @@ export class HtmlRenderer {
     }
 
     renderElements(elems: OpenXmlElement[], into?: HTMLElement): Node[] {
-        if(elems == null)
+        if (elems == null)
             return null;
 
         var result = elems.map((e: any) => e.render(this._renderContext)).filter(e => e != null);
 
-        if(into)
-            for(let c of result)
+        if (into)
+            for (let c of result)
                 into.appendChild(c);
 
         return result;

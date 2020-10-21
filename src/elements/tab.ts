@@ -17,7 +17,7 @@ export class Tab extends ElementBase {
             setTimeout(() => {
                 var paragraph = findParent<Paragraph>(this);
 
-                if(paragraph.props.tabs == null)
+                if (paragraph.props.tabs == null)
                     return;
 
                 paragraph.props.tabs.sort((a, b) => a.position.value - b.position.value);
@@ -35,6 +35,6 @@ function findParent<T extends OpenXmlElement>(elem: OpenXmlElement): T {
 
     while (parent != null && !(parent instanceof Paragraph))
         parent = parent.parent;
-    
+
     return <T>parent;
 }

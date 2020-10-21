@@ -3,7 +3,7 @@ import * as xml from "./common";
 import { ns } from "../dom/common";
 import { parseSectionProperties } from "./section";
 import { convertLength } from "./common";
-import { buildXmlSchema, deserializeSchema } from "./xml-serialize";
+import { buildXmlSchema, deserializeSchema, deserializeSchemaFromChildren } from "./xml-serialize";
 
 export function parseParagraphProperties(elem: Element, props: ParagraphProperties) {
     if (elem.namespaceURI != ns.wordml)
@@ -20,8 +20,11 @@ export function parseParagraphProperties(elem: Element, props: ParagraphProperti
 
         case "numPr":
             props.numbering = deserializeSchema(elem, {}, numberingSchema);
+            if (props.numbering.level == undefined) {
+                props.numbering = deserializeSchemaFromChildren(elem, {}, numberingSchema);
+            }
             break;
-        
+
         case "spacing":
             props.lineSpacing = deserializeSchema(elem, {}, lineSpacingSchema);
             return false; // TODO

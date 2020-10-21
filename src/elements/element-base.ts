@@ -1,10 +1,12 @@
 import { OpenXmlElement } from "../dom/dom";
 import { RenderContext } from "../dom/render-context";
 import { appendClass } from "../utils";
+import { Tab } from "./tab";
 
 export abstract class ElementBase implements OpenXmlElement {
     type: any;
     parent: OpenXmlElement;
+    children?: ElementBase[];
 
     render(ctx: RenderContext): Node {
         return null;
@@ -28,9 +30,27 @@ export abstract class ContainerBase extends ElementBase {
         else {
             elem.className = appendClass(elem.className, ctx.className);
         }
-        
-        for(let n of this.children.map(c => c.render(ctx)).filter(x => x != null))
-            elem.appendChild(n);
+
+        for (let i = 0; i < this.children.length; i++) {
+            let floatRight = false
+            const el = this.children[i];
+            if (el.children && el.children.length > 1) {
+                if (el.children.length == 2 &&
+                    el.children[0].constructor.name == "Tab" &&
+                    el.children[1].constructor.name == "Text") {
+                    floatRight = true
+                    el.children.shift()
+                }
+            }
+            let rend = el.render(ctx)
+            if (rend != null) {
+                if (floatRight) {
+                    rend["style"]["float"] = 'right';
+                }
+                elem.appendChild(rend);
+            }
+        }
+
 
         return elem;
     }

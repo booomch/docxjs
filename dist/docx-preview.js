@@ -106,6 +106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DocumentParser = exports.autos = void 0;
 var dom_1 = __webpack_require__(/*! ./dom/dom */ "./src/dom/dom.ts");
 var utils = __webpack_require__(/*! ./utils */ "./src/utils.ts");
 var common_1 = __webpack_require__(/*! ./dom/common */ "./src/dom/common.ts");
@@ -440,7 +441,7 @@ var DocumentParser = (function () {
     };
     DocumentParser.prototype.parseParagraph = function (node) {
         var _this = this;
-        var result = new paragraph_2.Paragraph();
+        var result = xml_serialize_1.deserializeElement(node, new paragraph_2.Paragraph());
         xml.foreach(node, function (c) {
             switch (c.localName) {
                 case "r":
@@ -487,7 +488,7 @@ var DocumentParser = (function () {
     };
     DocumentParser.prototype.parseHyperlink = function (node) {
         var _this = this;
-        var result = xml_serialize_1.deserialize(node, new hyperlink_1.Hyperlink());
+        var result = xml_serialize_1.deserializeElement(node, new hyperlink_1.Hyperlink());
         xml.foreach(node, function (c) {
             switch (c.localName) {
                 case "r":
@@ -499,7 +500,7 @@ var DocumentParser = (function () {
     };
     DocumentParser.prototype.parseRun = function (node) {
         var _this = this;
-        var result = xml_serialize_1.deserialize(node, new run_1.Run());
+        var result = xml_serialize_1.deserializeElement(node, new run_1.Run());
         xml.foreach(node, function (c) {
             switch (c.localName) {
                 case "fldChar":
@@ -1144,7 +1145,7 @@ var values = (function () {
         return xml.sizeAttr(c, "w");
     };
     values.valueOfRelType = function (c) {
-        switch (xml.sizeAttr(c, "Type")) {
+        switch (xml.stringAttr(c, "Type")) {
             case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings":
                 return dom_1.DomRelationshipType.Settings;
             case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme":
@@ -1268,6 +1269,7 @@ var values = (function () {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.deobfuscate = exports.Document = void 0;
 var JSZip = __webpack_require__(/*! jszip */ "jszip");
 var PartType;
 (function (PartType) {
@@ -1391,6 +1393,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.renderAsync = void 0;
 var document_1 = __webpack_require__(/*! ./document */ "./src/document.ts");
 var document_parser_1 = __webpack_require__(/*! ./document-parser */ "./src/document-parser.ts");
 var html_renderer_1 = __webpack_require__(/*! ./html-renderer */ "./src/html-renderer.ts");
@@ -1424,6 +1427,7 @@ exports.renderAsync = renderAsync;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.renderLength = exports.ns = void 0;
 exports.ns = {
     wordml: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 };
@@ -1445,6 +1449,7 @@ exports.renderLength = renderLength;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DomRelationshipType = exports.DomType = void 0;
 var DomType;
 (function (DomType) {
     DomType["Document"] = "document";
@@ -1473,7 +1478,21 @@ var DomRelationshipType;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ElementStyleWriter = exports.TextStyleWriter = exports.StyleWriterBase = exports.RenderContext = void 0;
 var RenderContext = (function () {
     function RenderContext() {
     }
@@ -1483,6 +1502,41 @@ var RenderContext = (function () {
     return RenderContext;
 }());
 exports.RenderContext = RenderContext;
+var StyleWriterBase = (function () {
+    function StyleWriterBase() {
+    }
+    return StyleWriterBase;
+}());
+exports.StyleWriterBase = StyleWriterBase;
+var TextStyleWriter = (function (_super) {
+    __extends(TextStyleWriter, _super);
+    function TextStyleWriter(text) {
+        if (text === void 0) { text = ""; }
+        var _this = _super.call(this) || this;
+        _this.text = text;
+        return _this;
+    }
+    TextStyleWriter.prototype.write = function (prop, value) {
+        this.text += prop + ": " + value + ";";
+        return this;
+    };
+    return TextStyleWriter;
+}(StyleWriterBase));
+exports.TextStyleWriter = TextStyleWriter;
+var ElementStyleWriter = (function (_super) {
+    __extends(ElementStyleWriter, _super);
+    function ElementStyleWriter(element) {
+        var _this = _super.call(this) || this;
+        _this.element = element;
+        return _this;
+    }
+    ElementStyleWriter.prototype.write = function (prop, value) {
+        this.element.style[prop] = value;
+        return this;
+    };
+    return ElementStyleWriter;
+}(StyleWriterBase));
+exports.ElementStyleWriter = ElementStyleWriter;
 
 
 /***/ }),
@@ -1519,6 +1573,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BookmarkEnd = exports.BookmarkStart = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
 var BookmarkStart = (function (_super) {
@@ -1539,6 +1594,9 @@ var BookmarkStart = (function (_super) {
         xml_serialize_1.fromAttribute("name"),
         __metadata("design:type", String)
     ], BookmarkStart.prototype, "name", void 0);
+    BookmarkStart = __decorate([
+        xml_serialize_1.element("bookmarkStart")
+    ], BookmarkStart);
     return BookmarkStart;
 }(element_base_1.ElementBase));
 exports.BookmarkStart = BookmarkStart;
@@ -1551,6 +1609,9 @@ var BookmarkEnd = (function (_super) {
         xml_serialize_1.fromAttribute("id"),
         __metadata("design:type", String)
     ], BookmarkEnd.prototype, "id", void 0);
+    BookmarkEnd = __decorate([
+        xml_serialize_1.element("bookmarkEnd")
+    ], BookmarkEnd);
     return BookmarkEnd;
 }(element_base_1.ElementBase));
 exports.BookmarkEnd = BookmarkEnd;
@@ -1590,6 +1651,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Break = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
 var Break = (function (_super) {
@@ -1636,6 +1698,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Cell = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var Cell = (function (_super) {
     __extends(Cell, _super);
@@ -1680,6 +1743,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Drawing = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var Drawing = (function (_super) {
     __extends(Drawing, _super);
@@ -1725,6 +1789,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.renderStyleValues = exports.ContainerBase = exports.ElementBase = void 0;
 var utils_1 = __webpack_require__(/*! ../utils */ "./src/utils.ts");
 var ElementBase = (function () {
     function ElementBase() {
@@ -1752,9 +1817,24 @@ var ContainerBase = (function (_super) {
         else {
             elem.className = utils_1.appendClass(elem.className, ctx.className);
         }
-        for (var _i = 0, _a = this.children.map(function (c) { return c.render(ctx); }).filter(function (x) { return x != null; }); _i < _a.length; _i++) {
-            var n = _a[_i];
-            elem.appendChild(n);
+        for (var i = 0; i < this.children.length; i++) {
+            var floatRight = false;
+            var el = this.children[i];
+            if (el.children && el.children.length > 1) {
+                if (el.children.length == 2 &&
+                    el.children[0].constructor.name == "Tab" &&
+                    el.children[1].constructor.name == "Text") {
+                    floatRight = true;
+                    el.children.shift();
+                }
+            }
+            var rend = el.render(ctx);
+            if (rend != null) {
+                if (floatRight) {
+                    rend["style"]["float"] = 'right';
+                }
+                elem.appendChild(rend);
+            }
         }
         return elem;
     };
@@ -1807,6 +1887,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Hyperlink = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
 var Hyperlink = (function (_super) {
@@ -1824,6 +1905,9 @@ var Hyperlink = (function (_super) {
         xml_serialize_1.fromAttribute("anchor"),
         __metadata("design:type", String)
     ], Hyperlink.prototype, "anchor", void 0);
+    Hyperlink = __decorate([
+        xml_serialize_1.element("hyperlink")
+    ], Hyperlink);
     return Hyperlink;
 }(element_base_1.ContainerBase));
 exports.Hyperlink = Hyperlink;
@@ -1854,6 +1938,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Image = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var Image = (function (_super) {
     __extends(Image, _super);
@@ -1908,6 +1993,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Paragraph = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var utils_1 = __webpack_require__(/*! ../utils */ "./src/utils.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
@@ -1961,6 +2047,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Row = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var Row = (function (_super) {
     __extends(Row, _super);
@@ -2006,6 +2093,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Run = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
 var break_1 = __webpack_require__(/*! ./break */ "./src/elements/break.ts");
@@ -2076,6 +2164,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Tab = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var javascript_1 = __webpack_require__(/*! ../javascript */ "./src/javascript.ts");
 var paragraph_1 = __webpack_require__(/*! ./paragraph */ "./src/elements/paragraph.ts");
@@ -2088,10 +2177,12 @@ var Tab = (function (_super) {
     Tab.prototype.render = function (ctx) {
         var _this = this;
         var tabSpan = ctx.html.createElement("span");
-        tabSpan.innerHTML = "&emsp;";
+        tabSpan.innerHTML = "&nbsp;";
         if (ctx.options.experimental) {
             setTimeout(function () {
                 var paragraph = findParent(_this);
+                if (paragraph.props.tabs == null)
+                    return;
                 paragraph.props.tabs.sort(function (a, b) { return a.position.value - b.position.value; });
                 tabSpan.style.display = "inline-block";
                 javascript_1.updateTabStop(tabSpan, paragraph.props.tabs);
@@ -2138,6 +2229,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Table = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var common_1 = __webpack_require__(/*! ../dom/common */ "./src/dom/common.ts");
 var Table = (function (_super) {
@@ -2201,6 +2293,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Symbol = exports.Text = void 0;
 var element_base_1 = __webpack_require__(/*! ./element-base */ "./src/elements/element-base.ts");
 var xml_serialize_1 = __webpack_require__(/*! ../parser/xml-serialize */ "./src/parser/xml-serialize.ts");
 var Text = (function (_super) {
@@ -2260,6 +2353,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.HtmlRenderer = void 0;
 var break_1 = __webpack_require__(/*! ./elements/break */ "./src/elements/break.ts");
 var paragraph_1 = __webpack_require__(/*! ./elements/paragraph */ "./src/elements/paragraph.ts");
 var table_1 = __webpack_require__(/*! ./elements/table */ "./src/elements/table.ts");
@@ -2452,7 +2546,7 @@ var HtmlRenderer = (function () {
                 if (this.options.breakPages && elem.children) {
                     pBreakIndex = elem.children.findIndex(function (r) {
                         var _a, _b;
-                        rBreakIndex = (_b = (_a = r.children) === null || _a === void 0 ? void 0 : _a.findIndex(function (t) { return (t instanceof break_1.Break) && t.break == "page"; }), (_b !== null && _b !== void 0 ? _b : -1));
+                        rBreakIndex = (_b = (_a = r.children) === null || _a === void 0 ? void 0 : _a.findIndex(function (t) { return (t instanceof break_1.Break) && t.break == "page"; })) !== null && _b !== void 0 ? _b : -1;
                         return rBreakIndex != -1;
                     });
                 }
@@ -2506,7 +2600,8 @@ var HtmlRenderer = (function () {
                 }
                 styleText += this_3.styleToString(selector + ":before", {
                     "content": this_3.levelTextToContent(num.levelText, num.id),
-                    "counter-increment": counter
+                    "counter-increment": counter,
+                    "padding": "10px"
                 });
                 styleText += this_3.styleToString(selector, __assign({ "display": "list-item", "list-style-position": "inside", "list-style-type": "none" }, num.style));
             }
@@ -2653,6 +2748,7 @@ function appendComment(elem, comment) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateTabStop = void 0;
 function updateTabStop(elem, tabs, pixelToPoint) {
     if (pixelToPoint === void 0) { pixelToPoint = 72 / 96; }
     var p = elem.closest("p");
@@ -2691,6 +2787,7 @@ exports.updateTabStop = updateTabStop;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseBorders = exports.parseBorder = exports.lengthAttr = exports.convertLength = exports.LengthUsage = exports.boolAttr = exports.colorAttr = exports.intAttr = exports.stringAttr = exports.elements = void 0;
 var common_1 = __webpack_require__(/*! ../dom/common */ "./src/dom/common.ts");
 function elements(elem, namespaceURI, localName) {
     if (namespaceURI === void 0) { namespaceURI = null; }
@@ -2736,10 +2833,14 @@ exports.LengthUsage = {
     Percent: { mul: 0.02, unit: "%" },
     LineHeight: { mul: 1 / 240, unit: null }
 };
+function convertLength(val, usage) {
+    if (usage === void 0) { usage = exports.LengthUsage.Dxa; }
+    return val ? { value: parseInt(val) * usage.mul, type: usage.unit } : null;
+}
+exports.convertLength = convertLength;
 function lengthAttr(elem, namespaceURI, name, usage) {
     if (usage === void 0) { usage = exports.LengthUsage.Dxa; }
-    var val = elem.getAttributeNS(namespaceURI, name);
-    return val ? { value: parseInt(val) * usage.mul, type: usage.unit } : null;
+    return convertLength(elem.getAttributeNS(namespaceURI, name), usage);
 }
 exports.lengthAttr = lengthAttr;
 function parseBorder(elem) {
@@ -2786,9 +2887,12 @@ exports.parseBorders = parseBorders;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseParagraphProperties = void 0;
 var xml = __webpack_require__(/*! ./common */ "./src/parser/common.ts");
 var common_1 = __webpack_require__(/*! ../dom/common */ "./src/dom/common.ts");
 var section_1 = __webpack_require__(/*! ./section */ "./src/parser/section.ts");
+var common_2 = __webpack_require__(/*! ./common */ "./src/parser/common.ts");
+var xml_serialize_1 = __webpack_require__(/*! ./xml-serialize */ "./src/parser/xml-serialize.ts");
 function parseParagraphProperties(elem, props) {
     if (elem.namespaceURI != common_1.ns.wordml)
         return false;
@@ -2800,10 +2904,13 @@ function parseParagraphProperties(elem, props) {
             props.sectionProps = section_1.parseSectionProperties(elem);
             break;
         case "numPr":
-            props.numbering = parseNumbering(elem);
+            props.numbering = xml_serialize_1.deserializeSchema(elem, {}, numberingSchema);
+            if (props.numbering.level == undefined) {
+                props.numbering = xml_serialize_1.deserializeSchemaFromChildren(elem, {}, numberingSchema);
+            }
             break;
         case "spacing":
-            props.lineSpacing = parseLineSpacing(elem);
+            props.lineSpacing = xml_serialize_1.deserializeSchema(elem, {}, lineSpacingSchema);
             return false;
             break;
         default:
@@ -2820,29 +2927,18 @@ function parseTabs(elem) {
         style: xml.stringAttr(e, common_1.ns.wordml, "val")
     }); });
 }
-function parseNumbering(elem) {
-    var result = {};
-    for (var _i = 0, _a = xml.elements(elem, common_1.ns.wordml); _i < _a.length; _i++) {
-        var e = _a[_i];
-        switch (e.localName) {
-            case "numId":
-                result.id = xml.stringAttr(e, common_1.ns.wordml, "val");
-                break;
-            case "ilvl":
-                result.level = xml.intAttr(e, common_1.ns.wordml, "val");
-                break;
-        }
-    }
-    return result;
-}
-function parseLineSpacing(elem) {
-    return {
-        before: xml.lengthAttr(elem, common_1.ns.wordml, "before"),
-        after: xml.lengthAttr(elem, common_1.ns.wordml, "after"),
-        line: xml.intAttr(elem, common_1.ns.wordml, "line"),
-        lineRule: xml.stringAttr(elem, common_1.ns.wordml, "lineRule")
-    };
-}
+var numberingSchema = xml_serialize_1.buildXmlSchema({
+    $elem: "numPr",
+    id: { $attr: "numId" },
+    level: { $attr: "ilvl", convert: function (v) { return parseInt(v); } },
+});
+var lineSpacingSchema = xml_serialize_1.buildXmlSchema({
+    $elem: "spacing",
+    before: { $attr: "before", convert: function (v) { return common_2.convertLength(v); } },
+    after: { $attr: "after", convert: function (v) { return common_2.convertLength(v); } },
+    line: { $attr: "line", convert: function (v) { return parseInt(v); } },
+    lineRule: { $attr: "before" },
+});
 
 
 /***/ }),
@@ -2857,6 +2953,7 @@ function parseLineSpacing(elem) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseSectionProperties = void 0;
 var common_1 = __webpack_require__(/*! ../dom/common */ "./src/dom/common.ts");
 var xml = __webpack_require__(/*! ./common */ "./src/parser/common.ts");
 function parseSectionProperties(elem) {
@@ -2917,6 +3014,7 @@ function parseColumns(elem) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.deserializeSchemaFromChildren = exports.deserializeSchema = exports.deserializeElement = exports.buildXmlSchema = exports.fromAttribute = exports.fromText = exports.children = exports.element = void 0;
 var schemaSymbol = Symbol("open-xml-schema");
 function element(name) {
     return function (target) {
@@ -2957,11 +3055,44 @@ function fromAttribute(attrName, convert) {
     };
 }
 exports.fromAttribute = fromAttribute;
-function deserialize(n, output) {
+function buildXmlSchema(schemaObj) {
+    var schema = {
+        text: null,
+        attrs: {},
+        elemName: null,
+        children: null
+    };
+    for (var p in schemaObj) {
+        var v = schemaObj[p];
+        if (p == "$elem") {
+            schema.elemName = v;
+        }
+        else if (v.$attr) {
+            schema.attrs[v.$attr] = { prop: p, convert: null };
+        }
+    }
+    return schema;
+}
+exports.buildXmlSchema = buildXmlSchema;
+function deserializeElement(n, output) {
     var proto = Object.getPrototypeOf(output);
     var schema = proto[schemaSymbol];
     if (schema == null)
         return output;
+    deserializeSchema(n, output, schema);
+    for (var i = 0, l = n.children.length; i < l; i++) {
+        var elem = n.children.item(i);
+        var child = schema.children[elem.localName];
+        if (child) {
+            var obj = Object.create(child.proto);
+            deserializeElement(elem, obj);
+            output.children.push(obj);
+        }
+    }
+    return output;
+}
+exports.deserializeElement = deserializeElement;
+function deserializeSchema(n, output, schema) {
     if (schema.text) {
         var prop = schema.text;
         output[prop.prop] = prop.convert ? prop.convert(n.textContent) : n.textContent;
@@ -2973,18 +3104,24 @@ function deserialize(n, output) {
             continue;
         output[prop.prop] = prop.convert ? prop.convert(attr.value) : attr.value;
     }
+    return output;
+}
+exports.deserializeSchema = deserializeSchema;
+function deserializeSchemaFromChildren(n, output, schema) {
+    if (schema.text) {
+        var prop = schema.text;
+        output[prop.prop] = prop.convert ? prop.convert(n.textContent) : n.textContent;
+    }
     for (var i = 0, l = n.children.length; i < l; i++) {
-        var elem = n.children.item(i);
-        var child = schema.children[elem.localName];
-        if (child) {
-            var obj = Object.create(child.proto);
-            deserialize(elem, obj);
-            output.children.push(obj);
-        }
+        var attr = n.children.item(i);
+        var prop = schema.attrs[attr.localName];
+        if (prop == null)
+            continue;
+        output[prop.prop] = attr.attributes[0].value;
     }
     return output;
 }
-exports.deserialize = deserialize;
+exports.deserializeSchemaFromChildren = deserializeSchemaFromChildren;
 function getPrototypeXmlSchema(proto) {
     return proto[schemaSymbol] || (proto[schemaSymbol] = {
         text: null,
@@ -3006,6 +3143,7 @@ function getPrototypeXmlSchema(proto) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.appendClass = exports.addElementClass = void 0;
 function addElementClass(element, className) {
     return element.className = appendClass(element.className, className);
 }

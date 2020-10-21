@@ -25,11 +25,18 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
+    "start": "nodemon server.js",
     "build": "webpack --mode production",
     "watch": "webpack --watch"
   },
   "files": [
     "dist"
   ],
-  "main": "dist/docx-preview.min.js"
+  "main": "dist/docx-preview.min.js",
+  "dependencies": {
+    "@types/node": "^14.14.0",
+    "express": "^4.17.1",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1"
+  }
 }
